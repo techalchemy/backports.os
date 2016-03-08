@@ -7,6 +7,9 @@ from __future__ import unicode_literals
 
 import sys
 
+# XXX backport: unicode on Python 2
+_str = unicode if sys.version_info < (3,) else str
+
 
 def _fscodec():
     encoding = sys.getfilesystemencoding()
@@ -23,7 +26,7 @@ def _fscodec():
         """
         if isinstance(filename, bytes):
             return filename
-        elif isinstance(filename, str):
+        elif isinstance(filename, _str):
             return filename.encode(encoding, errors)
         else:
             raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
@@ -34,7 +37,7 @@ def _fscodec():
         handler, return str unchanged. On Windows, use 'strict' error handler if
         the file system encoding is 'mbcs' (which is the default encoding).
         """
-        if isinstance(filename, str):
+        if isinstance(filename, _str):
             return filename
         elif isinstance(filename, bytes):
             return filename.decode(encoding, errors)
