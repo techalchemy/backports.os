@@ -1,5 +1,8 @@
 """
-Partial backport of new functionality in Python 3.5's os module.
+Partial backport of new functionality in Python 3.5's os module:
+
+    fsencode (new in Python 3.2)
+    fsdecode (new in Python 3.2)
 
 Backport modifications are marked with "XXX backport".
 """
