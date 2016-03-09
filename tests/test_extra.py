@@ -71,6 +71,20 @@ class ExtraFSEncodingTests(unittest.TestCase):
     def test_binary_roundtrip(self, b):
         self.assertEqual(os.fsencode(os.fsdecode(b)), b)
 
+    def test_TypeError(self):
+        def assertTypeError(value, expected_message):
+            for f in [os.fsencode, os.fsdecode]:
+                with self.assertRaises(TypeError) as cm:
+                    f(value)
+                self.assertEqual(str(cm.exception), expected_message)
+
+        pre = 'expect bytes or {}, not '.format(
+            'unicode' if sys.version_info < (3,) else 'str')
+        assertTypeError(None, pre + 'NoneType')
+        assertTypeError(5, pre + 'int')
+        assertTypeError([], pre + 'list')
+        assertTypeError((), pre + 'tuple')
+
 
 @unittest.skipIf(sys.version_info < (3,), 'Python 3 only')
 class TestAgainstPython3(unittest.TestCase):

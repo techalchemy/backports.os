@@ -132,7 +132,9 @@ def _fscodec():
             else:
                 return filename.encode(encoding, errors)
         else:
-            raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+            # XXX backport: unicode instead of str for Python 2
+            raise TypeError("expect bytes or {_str}, not {}".format(type(filename).__name__,
+                                                                    _str=_str.__name__, ))
 
     def fsdecode(filename):
         """
@@ -169,7 +171,9 @@ def _fscodec():
             else:
                 return filename.decode(encoding, errors)
         else:
-            raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+            # XXX backport: unicode instead of str for Python 2
+            raise TypeError("expect bytes or {_str}, not {}".format(type(filename).__name__,
+                                                                    _str=_str.__name__, ))
 
     return fsencode, fsdecode
 
