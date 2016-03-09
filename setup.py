@@ -1,5 +1,12 @@
 # coding: utf-8
+import sys
 from setuptools import setup, find_packages
+
+
+# Backward-compatibility dependencies for Python 2
+_python2_requires = [
+    'future',  # For backport of surrogateescape
+] if sys.version_info < (3,) else []
 
 
 setup(
@@ -15,6 +22,8 @@ setup(
 
     setup_requires=['setuptools_scm'],
     use_scm_version=True,
+
+    install_requires=_python2_requires,
 
     license='Python Software Foundation License',
     classifiers=[
