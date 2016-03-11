@@ -236,7 +236,12 @@ def get_exec_path(env=None):
 
 
 # Change environ to automatically call putenv(), unsetenv if they exist.
-from _collections_abc import MutableMapping
+# XXX backport: Python 3.3 moves ABCs from collections to collections.abc
+if sys.version_info < (3, 3):
+    from collections import MutableMapping
+else:
+    from collections.abc import MutableMapping
+
 
 class _Environ(MutableMapping):
     def __init__(self, data, encodekey, decodekey, encodevalue, decodevalue, putenv, unsetenv):
