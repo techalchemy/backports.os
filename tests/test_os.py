@@ -48,7 +48,10 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
     @unittest.skipUnless(os.path.exists('/bin/sh'), 'requires /bin/sh')
     def test_update2(self):
         os.environ.clear()
-        os.environ.update(HELLO="World")
+
+        # XXX backport: os.environ.update(HELLO="World")
+        os.environ.update(**{'HELLO': "World"})
+
         with os.popen("/bin/sh -c 'echo $HELLO'") as popen:
             value = popen.read().strip()
             self.assertEqual(value, "World")
