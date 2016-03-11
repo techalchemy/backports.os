@@ -107,16 +107,20 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
         self.assertSequenceEqual(test_path, os.get_exec_path(test_env))
 
         if os.supports_bytes_environ:
-            # env cannot contain 'PATH' and b'PATH' keys
-            try:
-                # ignore BytesWarning warning
-                with warnings.catch_warnings(record=True):
-                    mixed_env = {'PATH': '1', b'PATH': b'2'}
-            except BytesWarning:
-                # mixed_env cannot be created with python -bb
-                pass
-            else:
-                self.assertRaises(ValueError, os.get_exec_path, mixed_env)
+
+            # XXX backport: Python 2 folds text and binary to the same key,
+            # so the following is not possible.
+            if (3,) <= sys.version_info:
+                # env cannot contain 'PATH' and b'PATH' keys
+                try:
+                    # ignore BytesWarning warning
+                    with warnings.catch_warnings(record=True):
+                        mixed_env = {'PATH': '1', b'PATH': b'2'}
+                except BytesWarning:
+                    # mixed_env cannot be created with python -bb
+                    pass
+                else:
+                    self.assertRaises(ValueError, os.get_exec_path, mixed_env)
 
             # bytes key and/or value
             self.assertSequenceEqual(os.get_exec_path({b'PATH': b'abc'}),

@@ -217,15 +217,19 @@ def get_exec_path(env=None):
             path_list = None
 
         if supports_bytes_environ:
-            try:
-                path_listb = env[b'PATH']
-            except (KeyError, TypeError):
-                pass
-            else:
-                if path_list is not None:
-                    raise ValueError(
-                        "env cannot contain 'PATH' and b'PATH' keys")
-                path_list = path_listb
+
+            # XXX backport: Python 2 folds text and binary to the same key,
+            # so the following is not possible.
+            if (3,) <= sys.version_info:
+                try:
+                    path_listb = env[b'PATH']
+                except (KeyError, TypeError):
+                    pass
+                else:
+                    if path_list is not None:
+                        raise ValueError(
+                            "env cannot contain 'PATH' and b'PATH' keys")
+                    path_list = path_listb
 
             if path_list is not None and isinstance(path_list, bytes):
                 path_list = fsdecode(path_list)
