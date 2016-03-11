@@ -1,8 +1,20 @@
 """
 Partial backport of new functionality in Python 3.5's os module:
 
-    fsencode (new in Python 3.2)
-    fsdecode (new in Python 3.2)
+Changed in Python 3:
+
+    environ
+    getenv
+    popen
+
+New in Python 3.2:
+
+    environb
+    fsdecode
+    fsencode
+    get_exec_path
+    getenvb
+    supports_bytes_environ
 
 Backport modifications are marked with "XXX backport" and "TODO backport".
 """
