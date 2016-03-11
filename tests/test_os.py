@@ -13,6 +13,9 @@ import warnings
 
 from backports.test import support
 
+# XXX backport: unicode on Python 2
+_str = unicode if sys.version_info < (3,) else str
+
 
 import mapping_tests
 
@@ -64,8 +67,8 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
     # correct str type.
     def test_keyvalue_types(self):
         for key, val in os.environ.items():
-            self.assertEqual(type(key), str)
-            self.assertEqual(type(val), str)
+            self.assertEqual(type(key), _str)
+            self.assertEqual(type(val), _str)
 
     def test_items(self):
         for key, value in self._reference().items():

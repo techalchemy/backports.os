@@ -318,11 +318,12 @@ def _createenviron():
     if name == 'nt':
         # Where Env Var Names Must Be UPPERCASE
         def check_str(value):
-            if not isinstance(value, str):
-                raise TypeError("str expected, not %s" % type(value).__name__)
+            if not isinstance(value, _str):
+                raise TypeError("{_str} expected, not {}".format(type(value).__name__,
+                                                                 _str=_str.__name__))
             return value
         encode = check_str
-        decode = str
+        decode = _str
         def encodekey(key):
             return encode(key).upper()
         data = {}
@@ -332,8 +333,9 @@ def _createenviron():
         # Where Env Var Names Can Be Mixed Case
         encoding = sys.getfilesystemencoding()
         def encode(value):
-            if not isinstance(value, str):
-                raise TypeError("str expected, not %s" % type(value).__name__)
+            if not isinstance(value, _str):
+                raise TypeError("{_str} expected, not {}".format(type(value).__name__,
+                                                                 _str=_str.__name__))
             return value.encode(encoding, 'surrogateescape')
         def decode(value):
             return value.decode(encoding, 'surrogateescape')
@@ -470,7 +472,7 @@ del _fscodec
 
 # Supply os.popen()
 def popen(cmd, mode="r", buffering=-1):
-    if not isinstance(cmd, str):
+    if not isinstance(cmd, _str):
         raise TypeError("invalid cmd type (%s, expected string)" % type(cmd))
     if mode not in ("r", "w"):
         raise ValueError("invalid mode %r" % mode)
