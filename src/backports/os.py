@@ -479,18 +479,25 @@ def popen(cmd, mode="r", buffering=-1):
     if buffering == 0 or buffering is None:
         raise ValueError("popen() does not support unbuffered streams")
     import subprocess, io
+
+    # XXX backport: In Python 2, proc's stdout/stderr are raw files.
+    # To work with TextIOWrapper, they must be wrapped in an io stream first.
+    def _py2_wrap(f):
+        return (io.open(f.fileno(), mode=f.mode)
+                if sys.version_info < (3,) else f)
+
     if mode == "r":
         proc = subprocess.Popen(cmd,
                                 shell=True,
                                 stdout=subprocess.PIPE,
                                 bufsize=buffering)
-        return _wrap_close(io.TextIOWrapper(proc.stdout), proc)
+        return _wrap_close(io.TextIOWrapper(_py2_wrap(proc.stdout)), proc)
     else:
         proc = subprocess.Popen(cmd,
                                 shell=True,
                                 stdin=subprocess.PIPE,
                                 bufsize=buffering)
-        return _wrap_close(io.TextIOWrapper(proc.stdin), proc)
+        return _wrap_close(io.TextIOWrapper(_py2_wrap(proc.stdin)), proc)
 
 # Helper for popen() -- a proxy for a file whose close waits for the process
 class _wrap_close:
