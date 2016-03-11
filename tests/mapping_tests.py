@@ -21,11 +21,11 @@ class BasicTestMappingProtocol(unittest.TestCase):
     # semantics
     type2test = None # which class is being tested (overwrite in subclasses)
 
-    def _reference(self):
+    def _reference(self):  # pragma: no cover (overridden test helper)
         """Return a dictionary of values which are invariant by storage
         in the object under test."""
         return {"1": "2", "key1":"value1", "key2":(1,2,3)}
-    def _empty_mapping(self):
+    def _empty_mapping(self):  # pragma: no cover (overridden test helper)
         """Return an empty mapping object"""
         return self.type2test()
     def _full_mapping(self, data):
@@ -54,7 +54,7 @@ class BasicTestMappingProtocol(unittest.TestCase):
         p = self._empty_mapping()
         p1 = dict(p) #workaround for singleton objects
         d = self._full_mapping(self.reference)
-        if d is p:
+        if d is p:  # pragma: no branch (not used by test_os)
             p = p1
         #Indexing
         for key, value in self.reference.items():
@@ -164,7 +164,7 @@ class BasicTestMappingProtocol(unittest.TestCase):
 
         self.assertRaises(TypeError, d.values, None)
 
-    def test_items(self):
+    def test_items(self):  # pragma: no cover (overridden test helper)
         d = self._empty_mapping()
         self.assertEqual(list(d.items()), [])
 
@@ -265,7 +265,7 @@ class BasicTestMappingProtocol(unittest.TestCase):
                             rtn = chr(self.i)
                             self.i += 1
                             return rtn
-                        raise StopIteration
+                        raise StopIteration  # pragma: no cover (intentionally not reached)
                     # XXX backport: next became __next__
                     if sys.version_info < (3,):
                         next = __next__
