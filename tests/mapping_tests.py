@@ -10,6 +10,8 @@ from __future__ import unicode_literals
 # tests common to dict and UserDict
 import unittest
 
+import sys
+
 
 class BasicTestMappingProtocol(unittest.TestCase):
     # This base class can be used to check that an object conforms to the
@@ -77,7 +79,9 @@ class BasicTestMappingProtocol(unittest.TestCase):
         if not d: self.fail("Full mapping must compare to True")
         # keys(), items(), iterkeys() ...
         def check_iterandlist(iter, lst, ref):
-            self.assertTrue(hasattr(iter, '__next__'))
+            # XXX backport: next became __next__
+            __next__ = 'next' if sys.version_info < (3,) else '__next__'
+            self.assertTrue(hasattr(iter, __next__))
             self.assertTrue(hasattr(iter, '__iter__'))
             x = list(iter)
             self.assertTrue(set(x)==set(lst)==set(ref))
@@ -233,11 +237,16 @@ class BasicTestMappingProtocol(unittest.TestCase):
                         self.i = 1
                     def __iter__(self):
                         return self
+
                     def __next__(self):
                         if self.i:
                             self.i = 0
                             return 'a'
                         raise Exc
+                    # XXX backport: next became __next__
+                    if sys.version_info < (3,):
+                        next = __next__
+
                 return BogonIter()
             def __getitem__(self, key):
                 return key
@@ -250,12 +259,17 @@ class BasicTestMappingProtocol(unittest.TestCase):
                         self.i = ord('a')
                     def __iter__(self):
                         return self
+
                     def __next__(self):
                         if self.i <= ord('z'):
                             rtn = chr(self.i)
                             self.i += 1
                             return rtn
                         raise StopIteration
+                    # XXX backport: next became __next__
+                    if sys.version_info < (3,):
+                        next = __next__
+
                 return BogonIter()
             def __getitem__(self, key):
                 raise Exc
@@ -265,8 +279,12 @@ class BasicTestMappingProtocol(unittest.TestCase):
         class badseq(object):
             def __iter__(self):
                 return self
+
             def __next__(self):
                 raise Exc()
+            # XXX backport: next became __next__
+            if sys.version_info < (3,):
+                next = __next__
 
         self.assertRaises(Exc, d.update, badseq())
 
