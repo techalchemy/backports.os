@@ -112,9 +112,6 @@ __all__ = ["altsep", "curdir", "pardir", "sep", "pathsep", "linesep",
            "SEEK_END", "fsencode", "fsdecode", "get_exec_path", "fdopen",
            "popen", "extsep"]
 
-def _exists(name):
-    return name in globals()
-
 def _get_exports_list(module):
     try:
         return list(module.__all__)
