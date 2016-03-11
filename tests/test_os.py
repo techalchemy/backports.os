@@ -1,5 +1,7 @@
 """
 Partial backport of Python 3.5's Lib/test/test_os.py.
+
+Backport modifications are marked with "XXX backport".
 """
 from __future__ import unicode_literals
 
@@ -162,12 +164,14 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
         with self.assertRaises(KeyError) as cm:
             os.environ[missing]
         self.assertIs(cm.exception.args[0], missing)
-        self.assertTrue(cm.exception.__suppress_context__)
+        # XXX backport: Not applicable in Python 2
+        # self.assertTrue(cm.exception.__suppress_context__)
 
         with self.assertRaises(KeyError) as cm:
             del os.environ[missing]
         self.assertIs(cm.exception.args[0], missing)
-        self.assertTrue(cm.exception.__suppress_context__)
+        # XXX backport: Not applicable in Python 2
+        # self.assertTrue(cm.exception.__suppress_context__)
 
 class FSEncodingTests(unittest.TestCase):
     def test_nop(self):

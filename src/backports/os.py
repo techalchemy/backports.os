@@ -253,7 +253,8 @@ class _Environ(MutableMapping):
             value = self._data[self.encodekey(key)]
         except KeyError:
             # raise KeyError with the original key value
-            raise KeyError(key) from None
+            # XXX backport: raise KeyError(key) from None
+            raise KeyError(key)
         return self.decodevalue(value)
 
     def __setitem__(self, key, value):
@@ -269,7 +270,8 @@ class _Environ(MutableMapping):
             del self._data[encodedkey]
         except KeyError:
             # raise KeyError with the original key value
-            raise KeyError(key) from None
+            # XXX backport: raise KeyError(key) from None
+            raise KeyError(key)
 
     def __iter__(self):
         for key in self._data:
