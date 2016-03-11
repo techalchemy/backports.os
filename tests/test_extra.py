@@ -87,9 +87,9 @@ class ExtraFSEncodingTests(unittest.TestCase):
 
 
 @unittest.skipIf(sys.version_info < (3,), 'Python 3 only')
-class TestAgainstPython3(unittest.TestCase):
+class TestFSEncodingAgainstPython3(unittest.TestCase):
     """
-    On Python 3, the backported implementations should match the standard library.
+    On Python 3, the backported fsencode() / fsdecode() should match the standard library.
     """
 
     @given(text())
