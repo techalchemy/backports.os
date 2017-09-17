@@ -3,6 +3,11 @@ import sys
 from setuptools import setup, find_packages
 
 
+def README():
+    with open('README.rst') as f:
+        return f.read()
+
+
 # Backward-compatibility dependencies for Python 2
 _python2_requires = [
     'future',  # For backport of surrogateescape
@@ -12,6 +17,7 @@ _python2_requires = [
 setup(
     name='backports.os',
     description="Backport of new features in Python's os module",
+    long_description=README(),
     url='https://github.com/pjdelport/backports.os',
 
     author='Pi Delport',
