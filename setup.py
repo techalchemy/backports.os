@@ -14,7 +14,7 @@ setup(
     description="Backport of new features in Python's os module",
     url='https://github.com/pjdelport/backports.os',
 
-    author=u'Piët Delport',
+    author='Pi Delport',
     author_email='pjdelport@gmail.com',
 
     package_dir={'': 'src'},
