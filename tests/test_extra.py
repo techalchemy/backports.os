@@ -4,8 +4,10 @@ Additional test coverage, to supplement the backport of test_os.
 """
 from __future__ import unicode_literals
 
+import codecs
 import os as real_os
 import sys
+from functools import partial
 
 from backports import os
 
@@ -46,6 +48,14 @@ HIGH_SURROGATES = (
 UTF8_ENCODED_SURROGATE = b'\xed\xb0\x80'
 
 
+# Helper strategy: If the filesystem encoding is ASCII,
+# limit the set of valid text to encode to ASCII too.
+FILESYSTEM_IS_ASCII = codecs.lookup(sys.getfilesystemencoding()) == codecs.lookup('ascii')
+ASCII = ''.join(chr(i) for i in range(128))
+encodable_text = (partial(text, alphabet=ASCII) if FILESYSTEM_IS_ASCII else
+                  text)
+
+
 class ExtraFSEncodingTests(unittest.TestCase):
 
     def test_encode_surrogates(self):
@@ -60,7 +70,7 @@ class ExtraFSEncodingTests(unittest.TestCase):
         """
         self.assertEqual(os.fsdecode(HIGH_BYTES), HIGH_SURROGATES)
 
-    @given(text())
+    @given(encodable_text())
     @example(HIGH_SURROGATES)
     def test_text_roundtrip(self, s):
         self.assertEqual(os.fsdecode(os.fsencode(s)), s)
@@ -92,7 +102,7 @@ class TestAgainstPython3(unittest.TestCase):
     On Python 3, the backported implementations should match the standard library.
     """
 
-    @given(text())
+    @given(encodable_text())
     @example(HIGH_SURROGATES)
     def test_encode_text(self, s):
         self.assertEqual(os.fsencode(s), real_os.fsencode(s))
