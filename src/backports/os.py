@@ -103,6 +103,9 @@ def _fscodec():
     import codecs  # Use codecs.lookup() for name normalisation.
     _HACK_AROUND_PY2_UTF8 = (sys.version_info < (3,) and
                              codecs.lookup(encoding) == codecs.lookup('utf-8'))
+    # Do we need to hack around Python 2's ASCII codec error handler behaviour?
+    _HACK_AROUND_PY2_ASCII = (sys.version_info < (3,) and
+                              codecs.lookup(encoding) == codecs.lookup('ascii'))
 
     # XXX backport: chr(octet) became bytes([octet])
     _byte = chr if sys.version_info < (3,) else lambda i: bytes([i])
@@ -116,7 +119,7 @@ def _fscodec():
         if isinstance(filename, bytes):
             return filename
         elif isinstance(filename, _str):
-            if _HACK_AROUND_PY2_UTF8:
+            if _HACK_AROUND_PY2_UTF8 or _HACK_AROUND_PY2_ASCII:
                 # XXX backport: Unlike Python 3, Python 2's UTF-8 codec does not
                 # consider surrogate codepoints invalid, so the surrogateescape
                 # error handler never gets invoked to encode them back into high
@@ -124,6 +127,16 @@ def _fscodec():
                 #
                 # This code hacks around that by manually encoding the surrogate
                 # codepoints to high bytes, without relying on surrogateescape.
+                #
+                # As a *separate* issue to the above, Python2's ASCII codec has
+                # a different problem: it correctly invokes the surrogateescape
+                # error handler, but then seems to do additional strict
+                # validation (?) on the interim surrogate-decoded Unicode buffer
+                # returned by surrogateescape, and then fails with a
+                # UnicodeEncodeError anyway.
+                #
+                # The fix for that happens to be the same (manual encoding),
+                # even though the two causes are quite different.
                 #
                 return b''.join(
                     (_byte(ord(c) - 0xDC00) if 0xDC00 <= ord(c) <= 0xDCFF else
