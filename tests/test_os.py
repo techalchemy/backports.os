@@ -26,7 +26,7 @@ class FSEncodingTests(unittest.TestCase):
             #
             # Bug: https://github.com/PythonCharmers/python-future/issues/256
             # (This workaround can be removed once that is fixed.)
-            except NameError as e:
+            except NameError as e:  # pragma: no cover
                 if e.message == "global name 'exc' is not defined":
                     continue
                 else:
