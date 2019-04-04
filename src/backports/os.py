@@ -138,14 +138,14 @@ def _fscodec():
         _fs_encoding = "utf-8"
         if sys.platform.startswith("win"):
             _fs_error_fn = None
-            alt_strategy = "surrogatepass"
+            alt_strategy = "surrogatepass" if sys.version_info >= (3, 5) else "surrogateeescape"
         else:
             if sys.version_info >= (3, 3):
                 _fs_encoding = sys.getfilesystemencoding()
                 if not _fs_encoding:
                     _fs_encoding = sys.getdefaultencoding()
             alt_strategy = "surrogateescape"
-        _fs_error_fn = getattr(sys, "getfilesystemencodeerrors", None)
+            _fs_error_fn = getattr(sys, "getfilesystemencodeerrors", None)
         _fs_encode_errors = _fs_error_fn() if _fs_error_fn else alt_strategy
         _fs_decode_errors = _fs_error_fn() if _fs_error_fn else alt_strategy
 
