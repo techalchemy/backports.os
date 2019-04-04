@@ -8,7 +8,6 @@ Backport modifications are marked with "XXX backport" and "TODO backport".
 """
 from __future__ import unicode_literals
 
-from os import name as os_name
 import sys
 
 # XXX backport: unicode on Python 2
@@ -25,7 +24,7 @@ if sys.version_info < (3,):
     _fs_encoding = "utf-8"
 else:
     _fs_encoding = "utf-8"
-    if os_name == "nt":
+    if sys.platform.startswith("win"):
         _fs_error_fn = None
         alt_strategy = "surrogatepass"
     else:
