@@ -12,7 +12,6 @@ steps:
       CODECOV_TOKEN: $(CODECOV_TOKEN)
     displayName: 'Send Coverage Report'
 
-steps:
 - task: PublishCodeCoverageResults@1
   displayName: 'Publish code coverage from coverage.xml'
   inputs:
