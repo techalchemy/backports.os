@@ -1,3 +1,3 @@
 steps:
-  - script: python -m pip install --upgrade pip setuptools wheel codecov coverage hypothesis
+  - script: python -m pip install --upgrade pip setuptools wheel codecov coverage hypothesis pytest
     displayName: Install Dependencies
