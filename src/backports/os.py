@@ -8,16 +8,35 @@ Backport modifications are marked with "XXX backport" and "TODO backport".
 """
 from __future__ import unicode_literals
 
+from os import name as os_name
 import sys
 
 # XXX backport: unicode on Python 2
 _str = unicode if sys.version_info < (3,) else str
+string_types = basestring if sys.version_info[0] == 2 else str
 
 # XXX backport: Use backported surrogateescape for Python 2
 # TODO backport: Find a way to do this without pulling in the entire future package?
 if sys.version_info < (3,):
     from future.utils.surrogateescape import register_surrogateescape
     register_surrogateescape()
+    _fs_encode_errors = "backslashreplace"
+    _fs_decode_errors = "replace"
+    _fs_encoding = "utf-8"
+else:
+    _fs_encoding = "utf-8"
+    if os_name == "nt":
+        _fs_error_fn = None
+        alt_strategy = "surrogatepass"
+    else:
+        if sys.version_info >= (3, 3):
+            _fs_encoding = next(iter(enc for enc in [
+                sys.getfilesystemencoding(), sys.getdefaultencoding()
+            ]), _fs_encoding)
+        alt_strategy = "surrogateescape"
+        _fs_error_fn = getattr(sys, "getfilesystemencodeerrors", None)
+    _fs_encode_errors = _fs_error_fn() if _fs_error_fn else alt_strategy
+    _fs_decode_errors = _fs_error_fn() if _fs_error_fn else alt_strategy
 
 
 # XXX backport: This invalid_utf8_indexes() helper is shamelessly copied from
@@ -92,103 +111,54 @@ def _chunks(b, indexes):
     yield b[i:]
 
 
-def _fscodec():
-    encoding = sys.getfilesystemencoding()
-    if encoding == 'mbcs':
-        errors = 'strict'
-    else:
-        errors = 'surrogateescape'
+def _get_path(path):
+    """
+    Fetch the string value from a path-like object
 
-    # XXX backport: Do we need to hack around Python 2's UTF-8 codec?
-    import codecs  # Use codecs.lookup() for name normalisation.
-    _HACK_AROUND_PY2_UTF8 = (sys.version_info < (3,) and
-                             codecs.lookup(encoding) == codecs.lookup('utf-8'))
-    # Do we need to hack around Python 2's ASCII codec error handler behaviour?
-    _HACK_AROUND_PY2_ASCII = (sys.version_info < (3,) and
-                              codecs.lookup(encoding) == codecs.lookup('ascii'))
+    Returns **None** if there is no string value.
+    """
 
-    # XXX backport: chr(octet) became bytes([octet])
-    _byte = chr if sys.version_info < (3,) else lambda i: bytes([i])
+    if isinstance(path, (string_types, bytes)):
+        return path
+    path_type = type(path)
+    try:
+        path_repr = path_type.__fspath__(path)
+    except AttributeError:
+        return
+    if isinstance(path_repr, (string_types, bytes)):
+        return path_repr
+    return
 
-    def fsencode(filename):
-        """
-        Encode filename to the filesystem encoding with 'surrogateescape' error
-        handler, return bytes unchanged. On Windows, use 'strict' error handler if
-        the file system encoding is 'mbcs' (which is the default encoding).
-        """
-        if isinstance(filename, bytes):
-            return filename
-        elif isinstance(filename, _str):
-            if _HACK_AROUND_PY2_UTF8 or _HACK_AROUND_PY2_ASCII:
-                # XXX backport: Unlike Python 3, Python 2's UTF-8 codec does not
-                # consider surrogate codepoints invalid, so the surrogateescape
-                # error handler never gets invoked to encode them back into high
-                # bytes.
-                #
-                # This code hacks around that by manually encoding the surrogate
-                # codepoints to high bytes, without relying on surrogateescape.
-                #
-                # As a *separate* issue to the above, Python2's ASCII codec has
-                # a different problem: it correctly invokes the surrogateescape
-                # error handler, but then seems to do additional strict
-                # validation (?) on the interim surrogate-decoded Unicode buffer
-                # returned by surrogateescape, and then fails with a
-                # UnicodeEncodeError anyway.
-                #
-                # The fix for that happens to be the same (manual encoding),
-                # even though the two causes are quite different.
-                #
-                return b''.join(
-                    (_byte(ord(c) - 0xDC00) if 0xDC00 <= ord(c) <= 0xDCFF else
-                     c.encode(encoding))
-                    for c in filename)
-            else:
-                return filename.encode(encoding, errors)
-        else:
-            # XXX backport: unicode instead of str for Python 2
-            raise TypeError("expect bytes or {_str}, not {}".format(type(filename).__name__,
-                                                                    _str=_str.__name__, ))
 
-    def fsdecode(filename):
-        """
-        Decode filename from the filesystem encoding with 'surrogateescape' error
-        handler, return str unchanged. On Windows, use 'strict' error handler if
-        the file system encoding is 'mbcs' (which is the default encoding).
-        """
-        if isinstance(filename, _str):
-            return filename
-        elif isinstance(filename, bytes):
-            if _HACK_AROUND_PY2_UTF8:
-                # XXX backport: See the remarks in fsencode() above.
-                #
-                # This case is slightly trickier: Python 2 will invoke the
-                # surrogateescape error handler for most bad high byte
-                # sequences, *except* for full UTF-8 sequences that happen to
-                # decode to surrogate codepoints.
-                #
-                # For decoding, it's not trivial to sidestep the UTF-8 codec
-                # only for surrogates like fsencode() does, but as a hack we can
-                # split the input into separate chunks around each invalid byte,
-                # decode the chunks separately, and join the results.
-                #
-                # This prevents Python 2's UTF-8 codec from seeing the encoded
-                # surrogate sequences as valid, which lets surrogateescape take
-                # over and escape the individual bytes.
-                #
-                # TODO: Improve this.
-                #
-                from array import array
-                indexes = _invalid_utf8_indexes(array(str('B'), filename))
-                return ''.join(chunk.decode(encoding, errors)
-                               for chunk in _chunks(filename, indexes))
-            else:
-                return filename.decode(encoding, errors)
-        else:
-            # XXX backport: unicode instead of str for Python 2
-            raise TypeError("expect bytes or {_str}, not {}".format(type(filename).__name__,
-                                                                    _str=_str.__name__, ))
+def fsencode(path):
+    """
+    Encode a filesystem path to the proper filesystem encoding
 
-    return fsencode, fsdecode
+    :param Union[str, bytes] path: A string-like path
+    :returns: A bytes-encoded filesystem path representation
+    """
 
-fsencode, fsdecode = _fscodec()
-del _fscodec
+    path = _get_path(path)
+    if path is None:
+        raise TypeError("expected a valid path to encode")
+    if isinstance(path, _str):
+        path = path.encode(_fs_encoding, _fs_encode_errors)
+    return path
+
+
+def fsdecode(path):
+    """
+    Decode a filesystem path using the proper filesystem encoding
+
+    :param path: The filesystem path to decode from bytes or string
+    :return: An appropriately decoded path
+    :rtype: str
+    """
+
+    path = _get_path(path)
+    if path is None:
+        raise TypeError("expected a valid path to decode")
+    binary_type = str if sys.version_info[0] == 2 else bytes
+    if isinstance(path, binary_type):
+        path = path.decode(_fs_encoding, _fs_decode_errors)
+    return path
