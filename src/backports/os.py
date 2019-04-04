@@ -138,7 +138,7 @@ def _fscodec():
         _fs_encoding = "utf-8"
         if sys.platform.startswith("win"):
             _fs_error_fn = None
-            alt_strategy = "surrogatepass" if sys.version_info >= (3, 5) else "surrogateeescape"
+            alt_strategy = "surrogatepass"
         else:
             if sys.version_info >= (3, 3):
                 _fs_encoding = sys.getfilesystemencoding()
@@ -218,7 +218,13 @@ def _fscodec():
                 indexes = _invalid_utf8_indexes(array(str('B'), filename))
                 return ''.join(chunk.decode(_fs_encoding, _fs_decode_errors)
                                for chunk in _chunks(filename, indexes))
-            return path.decode(_fs_encoding, _fs_decode_errors)
+            try:
+                return path.decode(_fs_encoding, _fs_decode_errors)
+            except UnicodeDecodeError:
+                if _fs_decode_errors == "surrogatepass":
+                    return path.decode(_fs_encoding, "surrogateescape")
+                else:
+                    raise
         else:
             return path
 
