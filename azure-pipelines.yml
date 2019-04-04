@@ -60,13 +60,3 @@ jobs:
     maxParallel: 4
   steps:
   - template: .azure-pipelines/templates/run-tests.yml
-
-- job: BuildPackage
-  dependsOn:
-    - TestLinux
-    - TestWindows
-    - TestMacOS
-  pool:
-    vmImage: ubuntu-16.04
-  steps:
-  - template: .azure-pipelines/templates/build-package.yml
