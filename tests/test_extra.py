@@ -87,9 +87,9 @@ class ExtraFSEncodingTests(unittest.TestCase):
                 with self.assertRaises(TypeError) as cm:
                     f(value)
                 self.assertEqual(str(cm.exception), expected_message)
-
-        pre = 'expect bytes or {}, not '.format(
-            'unicode' if sys.version_info < (3,) else 'str')
+        pre = 'expected {0}, bytes or os.PathLike object, not '.format(
+            'unicode' if sys.version_info < (3,) else 'str'
+        )
         assertTypeError(None, pre + 'NoneType')
         assertTypeError(5, pre + 'int')
         assertTypeError([], pre + 'list')
