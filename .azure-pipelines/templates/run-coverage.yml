@@ -2,9 +2,6 @@ steps:
   - script: python -m pip install codacy-coverage codecov
     displayName: 'Install Coverage Reporters'
 
-  - script: coverage combine
-    displayName: 'Combine coverage file'
-
   - script: |
       coverage combine
       coverage xml -o coverage.xml
