@@ -114,6 +114,10 @@ class ExtraFSEncodingTests(unittest.TestCase):
     def test_text_roundtrip(self, s):
         self.assertEqual(os.fsdecode(os.fsencode(s)), s)
 
+    @unittest.skipIf(
+        IS_PY3 and sys.version_info[:2] <= (3, 5) and IS_WIN,
+        "Backport doesn't align with native implementation on win on or before python 3.5"
+    )
     @given(binary())
     @example(HIGH_BYTES)
     @example(UTF8_ENCODED_SURROGATE)
@@ -145,6 +149,7 @@ class ExtraFSEncodingTests(unittest.TestCase):
     def test_TypeError(self):
         def assertTypeError(value, expected_message):
             for f in [os.fsencode, os.fsdecode]:
+
                 with self.assertRaises(TypeError) as cm:
                     f(value)
                 self.assertEqual(str(cm.exception), expected_message)
@@ -163,11 +168,19 @@ class TestAgainstPython3(unittest.TestCase):
     On Python 3, the backported implementations should match the standard library.
     """
 
+    @unittest.skipIf(
+        IS_PY3 and sys.version_info[:2] <= (3, 5) and IS_WIN,
+        "Backport doesn't align with native implementation on win on or before python 3.5"
+    )
     @given(encodable_text())
     @example(HIGH_SURROGATES)
     def test_encode_text(self, s):
         self.assertEqual(os.fsencode(s), real_os.fsencode(s))
 
+    @unittest.skipIf(
+        IS_PY3 and sys.version_info[:2] <= (3, 5) and IS_WIN,
+        "Backport doesn't align with native implementation on win on or before python 3.5"
+    )
     @given(binary())
     @example(HIGH_BYTES)
     @example(UTF8_ENCODED_SURROGATE)
