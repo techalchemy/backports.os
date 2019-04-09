@@ -218,13 +218,7 @@ def _fscodec():
                 indexes = _invalid_utf8_indexes(array(str('B'), filename))
                 return ''.join(chunk.decode(_fs_encoding, _fs_decode_errors)
                                for chunk in _chunks(filename, indexes))
-            try:
-                return path.decode(_fs_encoding, _fs_decode_errors)
-            except UnicodeDecodeError:
-                if _fs_decode_errors == "surrogatepass":
-                    return path.decode(_fs_encoding, "surrogateescape")
-                else:
-                    raise
+            return path.decode(_fs_encoding, _fs_decode_errors)
         else:
             return path
 
